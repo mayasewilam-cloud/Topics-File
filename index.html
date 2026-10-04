@@ -18,16 +18,22 @@
   <div class="max-w-2xl mx-auto space-y-6">
 
     <!-- Top Card Header -->
-    <div class="bg-msanavy text-white p-6 rounded-3xl shadow-xl space-y-2">
-      <div class="flex items-center space-x-2 text-xs text-blue-200">
-        <span>Faculty of Biotechnology</span>
-        <span>•</span>
-        <span>Graduation Projects</span>
+    <div class="bg-msanavy text-white p-6 rounded-3xl shadow-xl flex items-center justify-between">
+      <div class="space-y-2">
+        <div class="flex items-center space-x-2 text-xs text-blue-200">
+          <span>Faculty of Biotechnology</span>
+          <span>•</span>
+          <span>MSA University</span>
+        </div>
+        <h1 class="text-2xl font-bold tracking-tight">📝 Topic Submission Form</h1>
+        <p class="text-xs text-blue-100/80">
+          Official graduation project topic registration & supervisor coordination.
+        </p>
       </div>
-      <h1 class="text-2xl font-bold tracking-tight">📝 Topic Submission Form</h1>
-      <p class="text-xs text-blue-100/80">
-        Official project registration and supervisor coordination system.
-      </p>
+      <div class="hidden sm:flex items-center space-x-3">
+        <img src="static/images/msa_logo.png" alt="MSA Logo" class="h-12 w-auto bg-white/10 p-1.5 rounded-xl border border-white/20 object-contain" onerror="this.style.display='none'">
+        <img src="static/images/biotech_seal.jpg" alt="Biotech Seal" class="h-12 w-auto rounded-xl border border-white/20 object-contain" onerror="this.style.display='none'">
+      </div>
     </div>
 
     <!-- Live Sync Status Banner -->
@@ -41,12 +47,18 @@
     <!-- Student Selection -->
     <div class="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-4">
       <div>
-        <label for="student" class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
-          Select Your Name / Student ID *
+        <label for="student-search" class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
+          Search Your Name or Student ID *
         </label>
+        <div class="relative mb-2">
+          <input type="text" id="student-search" oninput="filterStudents(this.value)" placeholder="🔍 Type Student ID (e.g. 245075) or Name to search..." 
+                 class="w-full p-3 pl-10 rounded-2xl border border-slate-200 bg-slate-50 focus:bg-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm">
+          <span class="absolute left-3.5 top-3.5 text-slate-400 text-sm">🔍</span>
+        </div>
         <select id="student" onchange="loadStudent()" class="w-full p-3.5 rounded-2xl border border-slate-200 bg-slate-50 focus:bg-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm">
           <option value="">-- Choose your record (217 enrolled students) --</option>
         </select>
+        <div id="search-count" class="text-[11px] text-slate-400 mt-1 pl-1">Showing all 217 enrolled students</div>
       </div>
 
       <!-- Allocation Info Banner -->
@@ -184,20 +196,44 @@
     const apiBase = (window.location.protocol.startsWith('http') && !window.location.hostname.includes('github.io')) ? '' : 'http://127.0.0.1:5000';
 
     function init() {
-      const sel = $('student');
-      sel.innerHTML = '<option value="">-- Choose your record (217 enrolled students) --</option>';
-      ALL_STUDENTS.forEach(s => {
-        const opt = document.createElement('option');
-        opt.value = s.id;
-        opt.textContent = `${s.id} — ${s.name}`;
-        sel.appendChild(opt);
-      });
+      renderStudentOptions(ALL_STUDENTS);
 
       // Auto-select if ?id=231777 query parameter is provided
       const urlParams = new URLSearchParams(window.location.search);
       const prefillId = urlParams.get('id');
       if (prefillId && STUDENT_MAP[prefillId]) {
-        sel.value = prefillId;
+        $('student').value = prefillId;
+        loadStudent();
+      }
+    }
+
+    function renderStudentOptions(list) {
+      const sel = $('student');
+      sel.innerHTML = '<option value="">-- Choose your record (217 enrolled students) --</option>';
+      list.forEach(s => {
+        const opt = document.createElement('option');
+        opt.value = s.id;
+        opt.textContent = `${s.id} — ${s.name}`;
+        sel.appendChild(opt);
+      });
+    }
+
+    function filterStudents(query) {
+      const q = (query || '').toLowerCase().trim();
+      if (!q) {
+        renderStudentOptions(ALL_STUDENTS);
+        $('search-count').textContent = 'Showing all 217 enrolled students';
+        return;
+      }
+      const filtered = ALL_STUDENTS.filter(s => 
+        String(s.id).toLowerCase().includes(q) || 
+        String(s.name).toLowerCase().includes(q) ||
+        String(s.venue || '').toLowerCase().includes(q)
+      );
+      renderStudentOptions(filtered);
+      $('search-count').textContent = `Showing ${filtered.length} of 217 students`;
+      if (filtered.length === 1 && q.length >= 3) {
+        $('student').value = filtered[0].id;
         loadStudent();
       }
     }
