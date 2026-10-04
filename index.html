@@ -272,7 +272,7 @@
       return s.replace(/\s+/g, ' ').trim();
     }
 
-    function loadStudent() {
+    async function loadStudent() {
       const id = $('student').value;
       if (!id) {
         $('allocation').classList.add('hidden');
@@ -313,6 +313,71 @@
       `;
       $('form-container').classList.remove('hidden');
       checkQuality();
+
+      // Live fetch student latest data from Google Sheet or local server
+      try {
+        let liveStudent = null;
+        if (apiBase) {
+          const r = await fetch(`${apiBase}/api/student/${id}`);
+          if (r.ok) liveStudent = await r.json();
+        }
+        if (!liveStudent && GOOGLE_SCRIPT_WEBAPP_URL) {
+          const r = await fetch(`${GOOGLE_SCRIPT_WEBAPP_URL}?action=get_student&id=${encodeURIComponent(id)}`);
+          if (r.ok) {
+            const g = await r.json();
+            if (g && g.StudentID) {
+              liveStudent = {
+                topic: g.TopicTitle || '',
+                phone: g.Phone || '',
+                ext_pos: g.ExternalSupervisorPosition || '',
+                ext_meet: g.MeetingsExternal || 0,
+                int_sup: g.AssignedInternalSupervisor || '',
+                int_pos: g.InternalSupervisorPosition || '',
+                int_meet: g.MeetingsInternal || 0,
+                is_updated: g.is_updated || 0
+              };
+            }
+          }
+        }
+        if (liveStudent && $('student').value === id) {
+          if (liveStudent.topic) {
+            $('topic').value = liveStudent.topic;
+            s.topic = liveStudent.topic;
+          }
+          if (liveStudent.phone) {
+            $('phone').value = liveStudent.phone;
+            s.phone = liveStudent.phone;
+          }
+          if (liveStudent.ext_pos) {
+            $('extpos').value = liveStudent.ext_pos;
+            s.ext_pos = liveStudent.ext_pos;
+          }
+          if (liveStudent.ext_meet != null) {
+            $('extmeet').value = liveStudent.ext_meet;
+            s.ext_meet = liveStudent.ext_meet;
+          }
+          if (liveStudent.int_pos) {
+            $('intpos').value = liveStudent.int_pos;
+            s.int_pos = liveStudent.int_pos;
+          }
+          if (liveStudent.int_meet != null) {
+            $('intmeet').value = liveStudent.int_meet;
+            s.int_meet = liveStudent.int_meet;
+          }
+          if (liveStudent.int_sup) {
+            s.int_sup = liveStudent.int_sup;
+            $('display-int-sup').textContent = liveStudent.int_sup;
+            $('int-badge').textContent = 'Assigned in Topics';
+            $('int-badge').className = 'text-[10px] font-bold px-2 py-0.5 rounded-full bg-purple-200 text-purple-900';
+          }
+          if (liveStudent.is_updated != null) {
+            s.is_updated = liveStudent.is_updated;
+          }
+          checkQuality();
+        }
+      } catch (err) {
+        console.log('Live student load note:', err);
+      }
     }
 
     function checkQuality() {
@@ -357,7 +422,9 @@
 
       const sid = $('student').value;
       const sObj = STUDENT_MAP[sid] || {};
-      const isRevision = Boolean(sObj.topic && String(sObj.topic).trim().length > 0);
+      const prevTopic = String(sObj.topic || '').trim();
+      const isRevision = Boolean(prevTopic.length > 0 || sObj.is_updated === 1 || isEditingAlloc);
+
       const data = {
         StudentID: sid,
         student_id: sid,
@@ -365,6 +432,11 @@
         name: sObj.name || '',
         TopicTitle: topicVal,
         topic: topicVal,
+        previous_topic: prevTopic,
+        previousTopic: prevTopic,
+        is_edit: isRevision ? 1 : 0,
+        is_updated: isRevision ? 1 : 0,
+        isRevision: isRevision,
         Phone: phoneVal,
         phone: phoneVal,
         Venue: $('venue').value,
@@ -393,6 +465,7 @@
         STUDENT_MAP[sid].ext_meet = data.ext_meet;
         STUDENT_MAP[sid].int_pos = data.int_pos;
         STUDENT_MAP[sid].int_meet = data.int_meet;
+        STUDENT_MAP[sid].is_updated = isRevision ? 1 : 0;
       }
 
       let successCount = 0;
