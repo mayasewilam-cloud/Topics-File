@@ -55,10 +55,10 @@ When you open the Google Sheet, a custom menu appears:
 ```
 
 - **Create / Update Topics File:**
-  - Reads students from the uploaded Allocation sheet, the synced `Students` sheet, or `INITIAL_STUDENTS`.
-  - Scans and **preserves all existing student topics** before refreshing.
+  - Formats all 13 official columns: `#`, `ID`, `Student Name `, `Phone Number`, `Venue`, `Field`, `Topic`, `External Supervisor`, `External Supervisor's Position`, `Number of times you met your External Supervisor(s)`, `Internal Supervsior`, `Internal Supervisor's Position`, and `Number of times you met your Internal Supervisor(s)`.
   - Merges Venues, Fields, and External Supervisor cohorts.
-  - Highlights rows with submitted topics in **Yellow (`#FFFF00`)**.
+  - Highlights rows with revised / edited topics in **Yellow (`#FFFF00`)** (first-time submissions retain a clean white background).
+  - Preserves leading zeros on phone numbers (`@` text format).
   - Re-calculates live `=COUNTIF` totals in the **Internal Supervisor Count** tab.
 
 ---

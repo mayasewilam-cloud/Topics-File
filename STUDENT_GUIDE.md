@@ -41,4 +41,4 @@ You can access the form from any mobile browser, tablet, or laptop.
 ### 6. Save & Synchronize
 - Click **💾 Save & Synchronize Topic**.
 - You will receive a green confirmation banner:
-  > **Topic Saved Successfully!** Your submission has been written to the official Topics File in Google Sheets and highlighted in **YELLOW** for coordinator review.
+  > **Topic Registered Successfully!** Your topic, supervisor interactions, and contact details have been directly recorded into the official Topics File in Google Sheets. (If revising an already submitted topic, your record will be highlighted in **YELLOW** for coordinator review).

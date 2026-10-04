@@ -356,9 +356,13 @@
       $('err').classList.add('hidden');
 
       const sid = $('student').value;
+      const sObj = STUDENT_MAP[sid] || {};
+      const isRevision = Boolean(sObj.topic && String(sObj.topic).trim().length > 0);
       const data = {
         StudentID: sid,
         student_id: sid,
+        Name: sObj.name || '',
+        name: sObj.name || '',
         TopicTitle: topicVal,
         topic: topicVal,
         Phone: phoneVal,
@@ -371,6 +375,8 @@
         ext_pos: $('extpos').value,
         MeetingsExternal: parseInt($('extmeet').value) || 0,
         ext_meet: parseInt($('extmeet').value) || 0,
+        InternalSupervisor: sObj.int_sup || '',
+        int_sup: sObj.int_sup || '',
         InternalSupervisorPosition: $('intpos').value,
         int_pos: $('intpos').value,
         MeetingsInternal: parseInt($('intmeet').value) || 0,
@@ -383,6 +389,10 @@
         STUDENT_MAP[sid].phone = phoneVal;
         STUDENT_MAP[sid].venue = data.venue;
         STUDENT_MAP[sid].ext_sup = data.ext_sup;
+        STUDENT_MAP[sid].ext_pos = data.ext_pos;
+        STUDENT_MAP[sid].ext_meet = data.ext_meet;
+        STUDENT_MAP[sid].int_pos = data.int_pos;
+        STUDENT_MAP[sid].int_meet = data.int_meet;
       }
 
       let successCount = 0;
@@ -420,7 +430,11 @@
       b.disabled = false;
       b.textContent = '💾 Save & Synchronize Topic';
       $('ok').classList.remove('hidden');
-      $('ok-msg').innerHTML = '<b>Topic Saved Successfully!</b><br>Your submission has been written to the official <b>Topics File</b> in Google Sheets and highlighted in <span style="background-color:#FEF08A;padding:2px 6px;border-radius:4px;font-weight:bold;color:#713f12;">YELLOW</span> for coordinator review.';
+      if (isRevision || isEditingAlloc) {
+        $('ok-msg').innerHTML = '<b>Topic Update Recorded!</b><br>Your revision has been synchronized directly with the official <b>Topics File</b> in Google Sheets and highlighted in <span style="background-color:#FEF08A;padding:2px 6px;border-radius:4px;font-weight:bold;color:#713f12;">YELLOW</span> for coordinator review.';
+      } else {
+        $('ok-msg').innerHTML = '<b>Topic Registered Successfully!</b><br>Your topic and contact details have been directly recorded into the official <b>Topics File</b> in Google Sheets.';
+      }
     }
 
     init();
